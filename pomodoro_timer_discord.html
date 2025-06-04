@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>家事タイマーアシスタント</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .timer {
+            font-size: 48px;
+            margin: 20px 0;
+            color: #333;
+        }
+        .mode {
+            font-size: 24px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .buttons {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .start {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .stop {
+            background-color: #f44336;
+            color: white;
+        }
+        .reset {
+            background-color: #2196F3;
+            color: white;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="timer" id="timer">25:00</div>
+        <div class="mode" id="mode">作業時間</div>
+        <div class="buttons">
+            <button class="start" onclick="toggleTimer()">開始</button>
+            <button class="stop" onclick="toggleTimer()">停止</button>
+            <button class="reset" onclick="resetTimer()">リセット</button>
+        </div>
+    </div>
+
+    <script>
+        let workMinutes = 25;
+        let breakMinutes = 5;
+        let isWorking = true;
+        let isRunning = false;
+        let timer;
+
+        function updateTimer() {
+            if (isWorking) {
+                workMinutes--;
+                if (workMinutes < 0) {
+                    workMinutes = 25;
+                    isWorking = false;
+                    document.getElementById('mode').textContent = '休憩時間';
+                    playSound();
+                }
+            } else {
+                breakMinutes--;
+                if (breakMinutes < 0) {
+                    breakMinutes = 5;
+                    isWorking = true;
+                    document.getElementById('mode').textContent = '作業時間';
+                    playSound();
+                }
+            }
+
+            const minutes = isWorking ? workMinutes : breakMinutes;
+            document.getElementById('timer').textContent = `${minutes.toString().padStart(2, '0')}:00`;
+        }
+
+        function toggleTimer() {
+            isRunning = !isRunning;
+            const startButton = document.querySelector('.start');
+            const stopButton = document.querySelector('.stop');
+            
+            if (isRunning) {
+                timer = setInterval(updateTimer, 1000);
+                startButton.style.display = 'none';
+                stopButton.style.display = 'inline-block';
+            } else {
+                clearInterval(timer);
+                startButton.style.display = 'inline-block';
+                stopButton.style.display = 'none';
+            }
+        }
+
+        function resetTimer() {
+            isRunning = false;
+            clearInterval(timer);
+            workMinutes = 25;
+            breakMinutes = 5;
+            isWorking = true;
+            document.getElementById('mode').textContent = '作業時間';
+            document.getElementById('timer').textContent = '25:00';
+            const startButton = document.querySelector('.start');
+            const stopButton = document.querySelector('.stop');
+            startButton.style.display = 'inline-block';
+            stopButton.style.display = 'none';
+        }
+
+        function playSound() {
+            const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+            audio.play();
+        }
+    </script>
+</body>
+</html>

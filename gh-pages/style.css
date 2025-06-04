@@ -1,0 +1,139 @@
+body {
+    font-family: 'Hiragino Sans', Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f8f4f0;
+    color: #333;
+}
+
+.container {
+    text-align: center;
+    background-color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    width: 90%;
+    max-width: 600px;
+}
+
+.header {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #e74c3c;
+}
+
+.timer {
+    font-size: 48px;
+    margin: 20px 0;
+    color: #2c3e50;
+}
+
+.mode {
+    font-size: 20px;
+    color: #3498db;
+    margin-bottom: 20px;
+}
+
+.category-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+    justify-content: center;
+}
+
+.category-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.category-button.active {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.category-button:hover:not(.active) {
+    background-color: #e9ecef;
+}
+
+.category-info {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    display: none;
+}
+
+.category-info.active {
+    display: block;
+}
+
+.category-icon {
+    font-size: 24px;
+    margin-right: 10px;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+button {
+    padding: 12px 24px;
+    font-size: 16px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.start {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.stop {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.reset {
+    background-color: #3498db;
+    color: white;
+}
+
+button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+.custom-time {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.time-input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 80px;
+    text-align: center;
+}
+
+.time-label {
+    font-size: 14px;
+    color: #666;
+}

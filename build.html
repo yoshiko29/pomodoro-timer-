@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>家事タイマーアシスタント</title>
+    <script>
+        // ダウンロード機能
+        function downloadFile() {
+            const html = document.getElementById('app').innerHTML;
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'housework-timer.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</head>
+<body>
+    <div id="app">
+        <!-- 既存のindex.htmlの内容をここに移動 -->
+        <div class="container">
+            <div class="header">家事タイマーアシスタント</div>
+            <div class="timer" id="timer">25:00</div>
+            <div class="mode" id="mode">作業時間</div>
+            
+            <div class="custom-time">
+                <input type="number" class="time-input" id="customMinutes" value="25" min="1" max="120">
+                <span class="time-label">分</span>
+                <button onclick="setCustomTime()" class="custom-time-btn">設定</button>
+            </div>
+
+            <ul class="task-list">
+                <li class="task-item">
+                    <input type="checkbox" class="task-checkbox">
+                    <span>料理の準備</span>
+                </li>
+                <li class="task-item">
+                    <input type="checkbox" class="task-checkbox">
+                    <span>掃除</span>
+                </li>
+                <li class="task-item">
+                    <input type="checkbox" class="task-checkbox">
+                    <span>洗濯物の片付け</span>
+                </li>
+            </ul>
+
+            <div class="buttons">
+                <button class="start" onclick="toggleTimer()">開始</button>
+                <button class="stop" onclick="toggleTimer()">停止</button>
+                <button class="reset" onclick="resetTimer()">リセット</button>
+            </div>
+        </div>
+
+        <script>
+            let workMinutes = 25;
+            let breakMinutes = 5;
+            let isWorking = true;
+            let isRunning = false;
+            let timer;
+            let taskList = [];
+
+            // タスクの保存と読み込み
+            function saveTasks() {
+                localStorage.setItem('tasks', JSON.stringify(taskList));
+            }
+
+            function loadTasks() {
+                const savedTasks = localStorage.getItem('tasks');
+                if (savedTasks) {
+                    taskList = JSON.parse(savedTasks);
+                    updateTaskList();
+                }
+            }
+
+            // タスクリストの更新
+            function updateTaskList() {
+                const taskListElement = document.querySelector('.task-list');
+                taskListElement.innerHTML = '';
+                
+                taskList.forEach(task => {
+                    const li = document.createElement('li');
+                    li.className = 'task-item';
+                    li.innerHTML = `
+                        <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
+                        <span>${task.name}</span>
+                    `;
+                    li.querySelector('.task-checkbox').addEventListener('change', () => {
+                        task.completed = !task.completed;
+                        saveTasks();
+                    });
+                    taskListElement.appendChild(li);
+                });
+            }
+
+            // カスタム時間の設定
+            function setCustomTime() {
+                const minutes = parseInt(document.getElementById('customMinutes').value);
+                if (minutes >= 1 && minutes <= 120) {
+                    workMinutes = minutes;
+                    document.getElementById('timer').textContent = `${minutes.toString().padStart(2, '0')}:00`;
+                }
+            }
+
+            function updateTimer() {
+                if (isWorking) {
+                    workMinutes--;
+                    if (workMinutes < 0) {
+                        workMinutes = 25;
+                        isWorking = false;
+                        document.getElementById('mode').textContent = '休憩時間';
+                        playSound();
+                    }
+                } else {
+                    breakMinutes--;
+                    if (breakMinutes < 0) {
+                        breakMinutes = 5;
+                        isWorking = true;
+                        document.getElementById('mode').textContent = '作業時間';
+                        playSound();
+                    }
+                }
+
+                const minutes = isWorking ? workMinutes : breakMinutes;
+                document.getElementById('timer').textContent = `${minutes.toString().padStart(2, '0')}:00`;
+            }
+
+            function toggleTimer() {
+                isRunning = !isRunning;
+                const startButton = document.querySelector('.start');
+                const stopButton = document.querySelector('.stop');
+                
+                if (isRunning) {
+                    timer = setInterval(updateTimer, 1000);
+                    startButton.style.display = 'none';
+                    stopButton.style.display = 'inline-block';
+                } else {
+                    clearInterval(timer);
+                    startButton.style.display = 'inline-block';
+                    stopButton.style.display = 'none';
+                }
+            }
+
+            function resetTimer() {
+                isRunning = false;
+                clearInterval(timer);
+                workMinutes = 25;
+                breakMinutes = 5;
+                isWorking = true;
+                document.getElementById('mode').textContent = '作業時間';
+                document.getElementById('timer').textContent = '25:00';
+                const startButton = document.querySelector('.start');
+                const stopButton = document.querySelector('.stop');
+                startButton.style.display = 'inline-block';
+                stopButton.style.display = 'none';
+            }
+
+            function playSound() {
+                const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+                audio.play();
+            }
+
+            // 初期化
+            loadTasks();
+        </script>
+
+        <style>
+            body {
+                font-family: 'Hiragino Sans', Arial, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                margin: 0;
+                background-color: #f8f4f0;
+                color: #333;
+            }
+            .container {
+                text-align: center;
+                background-color: white;
+                padding: 2rem;
+                border-radius: 15px;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+                width: 90%;
+                max-width: 600px;
+            }
+            .header {
+                font-size: 24px;
+                margin-bottom: 20px;
+                color: #e74c3c;
+            }
+            .timer {
+                font-size: 48px;
+                margin: 20px 0;
+                color: #2c3e50;
+            }
+            .mode {
+                font-size: 20px;
+                color: #3498db;
+                margin-bottom: 20px;
+            }
+            .task-list {
+                margin: 20px 0;
+                padding: 0;
+                list-style: none;
+            }
+            .task-item {
+                display: flex;
+                align-items: center;
+                margin: 10px 0;
+                padding: 10px;
+                background-color: #f8f9fa;
+                border-radius: 5px;
+            }
+            .task-checkbox {
+                margin-right: 10px;
+            }
+            .buttons {
+                display: flex;
+                gap: 10px;
+                margin-top: 20px;
+            }
+            button {
+                padding: 12px 24px;
+                font-size: 16px;
+                border: none;
+                border-radius: 25px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-family: inherit;
+            }
+            .start {
+                background-color: #2ecc71;
+                color: white;
+            }
+            .stop {
+                background-color: #e74c3c;
+                color: white;
+            }
+            .reset {
+                background-color: #3498db;
+                color: white;
+            }
+            button:hover {
+                opacity: 0.9;
+                transform: translateY(-2px);
+            }
+            .custom-time {
+                margin-top: 20px;
+                display: flex;
+                gap: 10px;
+            }
+            .time-input {
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                width: 80px;
+                text-align: center;
+            }
+            .time-label {
+                font-size: 14px;
+                color: #666;
+            }
+        </style>
+    </div>
+
+    <button onclick="downloadFile()" style="position: fixed; bottom: 20px; right: 20px; padding: 10px 20px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">ダウンロード</button>
+</body>
+</html>

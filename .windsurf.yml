@@ -1,0 +1,12 @@
+name: pomodoro-timer-jp
+framework: static
+build:
+  command: npm run build
+  directory: .
+  environment:
+    NODE_ENV: production
+deploy:
+  command: npm run deploy
+  directory: .
+  environment:
+    NODE_ENV: production

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>目標達成タイマーアシスタント</title>
+    <style>
+        body {
+            font-family: 'Hiragino Sans', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 800px;
+        }
+        .header {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .goal-section {
+            margin: 20px 0;
+        }
+        .goal-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .timer {
+            font-size: 48px;
+            margin: 20px 0;
+            color: #3498db;
+        }
+        .progress {
+            width: 100%;
+            height: 10px;
+            background: #f3f3f3;
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #2ecc71;
+            transition: width 0.3s ease;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .start {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .stop {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .reset {
+            background-color: #3498db;
+            color: white;
+        }
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        .task-list {
+            margin: 20px 0;
+            padding: 0;
+            list-style: none;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .task-checkbox {
+            margin-right: 10px;
+        }
+        .motivation {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .motivation p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">目標達成タイマーアシスタント</div>
+
+        <div class="goal-section">
+            <input type="text" class="goal-input" id="goalInput" placeholder="今日の目標を入力してください">
+            <div class="progress">
+                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="timer" id="timer">25:00</div>
+        <div class="mode" id="mode">作業時間</div>
+
+        <div class="motivation">
+            <p>今日の目標： <span id="currentGoal">未設定</span></p>
+            <p>残り時間： <span id="remainingTime">25:00</span></p>
+        </div>
+
+        <div class="buttons">
+            <button class="start" onclick="toggleTimer()">開始</button>
+            <button class="stop" onclick="toggleTimer()">停止</button>
+            <button class="reset" onclick="resetTimer()">リセット</button>
+        </div>
+
+        <div class="task-list">
+            <h3>タスク一覧</h3>
+            <ul id="taskList">
+                <li class="task-item">
+                    <input type="checkbox" class="task-checkbox">
+                    <span>タスク1</span>
+                </li>
+                <li class="task-item">
+                    <input type="checkbox" class="task-checkbox">
+                    <span>タスク2</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let workMinutes = 25;
+        let breakMinutes = 5;
+        let isWorking = true;
+        let isRunning = false;
+        let timer;
+        let goal = "";
+        let progress = 0;
+
+        // ゴールの設定
+        document.getElementById('goalInput').addEventListener('change', (e) => {
+            goal = e.target.value;
+            document.getElementById('currentGoal').textContent = goal || '未設定';
+        });
+
+        function updateProgress() {
+            if (isWorking) {
+                progress = 100 - (workMinutes / 25 * 100);
+            } else {
+                progress = 100;
+            }
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function updateTimer() {
+            if (isWorking) {
+                workMinutes--;
+                if (workMinutes < 0) {
+                    workMinutes = 25;
+                    isWorking = false;
+                    document.getElementById('mode').textContent = '休憩時間';
+                    playSound();
+                    document.getElementById('remainingTime').textContent = '25:00';
+                }
+            } else {
+                breakMinutes--;
+                if (breakMinutes < 0) {
+                    breakMinutes = 5;
+                    isWorking = true;
+                    document.getElementById('mode').textContent = '作業時間';
+                    playSound();
+                    updateProgress();
+                }
+            }
+
+            const minutes = isWorking ? workMinutes : breakMinutes;
+            document.getElementById('timer').textContent = `${minutes.toString().padStart(2, '0')}:00`;
+            document.getElementById('remainingTime').textContent = `${minutes.toString().padStart(2, '0')}:00`;
+            updateProgress();
+        }
+
+        function toggleTimer() {
+            isRunning = !isRunning;
+            const startButton = document.querySelector('.start');
+            const stopButton = document.querySelector('.stop');
+            
+            if (isRunning) {
+                timer = setInterval(updateTimer, 1000);
+                startButton.style.display = 'none';
+                stopButton.style.display = 'inline-block';
+            } else {
+                clearInterval(timer);
+                startButton.style.display = 'inline-block';
+                stopButton.style.display = 'none';
+            }
+        }
+
+        function resetTimer() {
+            isRunning = false;
+            clearInterval(timer);
+            workMinutes = 25;
+            breakMinutes = 5;
+            isWorking = true;
+            document.getElementById('mode').textContent = '作業時間';
+            document.getElementById('timer').textContent = '25:00';
+            document.getElementById('remainingTime').textContent = '25:00';
+            document.getElementById('progressBar').style.width = '0%';
+            const startButton = document.querySelector('.start');
+            const stopButton = document.querySelector('.stop');
+            startButton.style.display = 'inline-block';
+            stopButton.style.display = 'none';
+        }
+
+        function playSound() {
+            const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+            audio.play();
+        }
+
+        // タスクの管理
+        function addTask() {
+            const taskInput = document.createElement('input');
+            taskInput.type = 'text';
+            taskInput.placeholder = '新しいタスクを入力';
+            
+            const addButton = document.createElement('button');
+            addButton.textContent = '追加';
+            addButton.onclick = () => {
+                const taskText = taskInput.value.trim();
+                if (taskText) {
+                    const taskList = document.getElementById('taskList');
+                    const li = document.createElement('li');
+                    li.className = 'task-item';
+                    li.innerHTML = `
+                        <input type="checkbox" class="task-checkbox">
+                        <span>${taskText}</span>
+                    `;
+                    taskList.appendChild(li);
+                }
+            };
+            
+            document.querySelector('.task-list').insertBefore(taskInput, document.querySelector('.task-list ul'));
+            document.querySelector('.task-list').insertBefore(addButton, document.querySelector('.task-list ul'));
+        }
+
+        // イニシャルタスクの追加
+        addTask();
+    </script>
+</body>
+</html>
